@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voyacosmo Book Club</title>
+<meta name="description" content="A book club that reads its way around the world.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Young+Serif&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night: #14173a;
+    --deep: #0e1029;
+    --panel: #1d2150;
+    --land: #262b66;
+    --ink: #ece8f6;
+    --muted: #a3a8d8;
+    --star: #f0b25c;
+    --paper: #ded6c6;      /* taken from the logo's paper */
+    --line: rgba(163,168,216,.25);
+    --serif: "Young Serif", Georgia, "Times New Roman", serif;
+    --sans: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --cover-w: 170px;
+    --gap: 32px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--night); color: var(--ink); font-family: var(--sans); font-size: 1.0625rem; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--star); outline-offset: 3px; border-radius: 4px; }
+
+  .sky {
+    background:
+      radial-gradient(1.5px 1.5px at 12% 22%, #fff9 50%, transparent 51%),
+      radial-gradient(1px 1px at 78% 14%, #fff8 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 64% 68%, #fff7 50%, transparent 51%),
+      radial-gradient(1px 1px at 30% 80%, #fff8 50%, transparent 51%),
+      radial-gradient(2px 2px at 90% 55%, #f0b25caa 50%, transparent 51%),
+      radial-gradient(1px 1px at 45% 38%, #fff6 50%, transparent 51%),
+      radial-gradient(1px 1px at 5% 60%, #fff7 50%, transparent 51%),
+      radial-gradient(ellipse 80% 60% at 75% 0%, #2b2f7a 0%, transparent 70%),
+      var(--night);
+    background-size: 520px 420px, 610px 480px, 430px 390px, 560px 450px, 700px 520px, 480px 400px, 640px 500px, auto, auto;
+  }
+
+  /* Header + logo (the logo file is cropped to its own circle so it sits like a seal) */
+  header.site { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; max-width: 1200px; margin: 0 auto; padding: 18px 28px; }
+  .logo { --s: 104px; display: inline-block; position: relative; width: var(--s); height: var(--s); border-radius: 50%; overflow: hidden; background: var(--paper); box-shadow: 0 0 0 2px rgba(222,214,198,.35), 0 8px 22px rgba(0,0,0,.4); }
+  .logo img { position: absolute; width: calc(var(--s) * 1.2065); max-width: none; left: calc(var(--s) * -0.1027); top: calc(var(--s) * -0.0992); }
+  nav.main ul { display: flex; gap: 28px; list-style: none; margin: 0; padding: 0; }
+  nav.main a { text-decoration: none; color: var(--muted); font-weight: 500; padding: 6px 0; border-bottom: 2px solid transparent; }
+  nav.main a:hover { color: var(--ink); border-bottom-color: var(--star); }
+
+  .hero { max-width: 1200px; margin: 0 auto; padding: 24px 28px 28px; }
+  .hero h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(2.4rem, 6.4vw, 5rem); line-height: 1.04; letter-spacing: -.015em; margin: 0 0 22px; max-width: 18ch; }
+  .hero p.lede { color: var(--muted); font-size: 1.2rem; max-width: 46ch; margin: 0 0 30px; }
+  .btn { display: inline-block; background: var(--star); color: #1a1530; font-weight: 600; text-decoration: none; padding: 13px 24px; border-radius: 999px; transition: transform .15s ease, box-shadow .15s ease; }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(240,178,92,.3); }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--line); margin-left: 10px; }
+  .btn.ghost:hover { border-color: var(--star); box-shadow: none; }
+
+  /* Cover carousel */
+  .voyage { position: relative; padding: 16px 0 60px; overflow: hidden; }
+  .voyage::before, .voyage::after { content: ""; position: absolute; top: 0; bottom: 0; width: 12vw; max-width: 160px; z-index: 2; pointer-events: none; }
+  .voyage::before { left: 0; background: linear-gradient(90deg, var(--night), transparent); }
+  .voyage::after { right: 0; background: linear-gradient(-90deg, var(--night), transparent); }
+  .track { display: flex; gap: var(--gap); width: max-content; padding: 20px 0; animation: drift 60s linear infinite; }
+  .voyage:hover .track, .voyage:focus-within .track, .voyage.paused .track { animation-play-state: paused; }
+  @keyframes drift { to { transform: translateX(-50%); } }
+  figure.stop { margin: 0; flex: none; width: var(--cover-w); }
+  figure.stop:nth-child(odd) { margin-top: 18px; }
+  figure.stop figcaption { margin-top: 14px; text-align: center; font-family: var(--serif); font-size: 1.05rem; color: var(--paper); }
+  .cover-btn { all: unset; cursor: pointer; display: block; width: 100%; aspect-ratio: 2 / 3; position: relative; border-radius: 3px 6px 6px 3px; box-shadow: -3px 0 0 rgba(0,0,0,.35) inset, 0 18px 34px rgba(0,0,0,.5); transition: transform .25s ease; background: var(--panel); }
+  .cover-btn:hover, .cover-btn:focus-visible { transform: translateY(-10px) rotate(-1.5deg); }
+  .cover-btn img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; }
+  .cover-fallback { width: 100%; height: 100%; border-radius: inherit; padding: 18px 14px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center; }
+  .cover-fallback .t { font-family: var(--serif); font-size: 1.1rem; line-height: 1.15; }
+  .cover-fallback .a { font-size: .78rem; font-weight: 600; letter-spacing: .04em; opacity: .85; }
+  .cover-fallback .orb { width: 44px; height: 44px; border-radius: 50%; }
+  .voyage-controls { position: absolute; right: 28px; bottom: 14px; z-index: 3; }
+  .voyage-controls button { background: var(--panel); color: var(--ink); border: 1px solid var(--line); padding: 7px 14px; border-radius: 999px; font: inherit; font-size: .9rem; cursor: pointer; }
+  .voyage-controls button:hover { border-color: var(--star); }
+
+  section.block { max-width: 1200px; margin: 0 auto; padding: 56px 28px 72px; }
+  section.block h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(1.8rem, 3.6vw, 2.6rem); margin: 0 0 12px; }
+  section.block > p.sub { color: var(--muted); margin: 0 0 36px; max-width: 54ch; }
+
+  /* Atlas */
+  .atlas { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 44px; align-items: start; }
+  .atlas.no-map { grid-template-columns: 1fr; }
+  .map svg { width: 100%; height: auto; display: block; }
+  .map .sea { fill: none; stroke: var(--line); stroke-width: .6; }
+  .map .grat { fill: none; stroke: rgba(163,168,216,.10); stroke-width: .5; }
+  .map .land { fill: var(--land); stroke: var(--night); stroke-width: .5; }
+  .map .land.visited { fill: rgba(240,178,92,.38); cursor: pointer; }
+  .map .land.visited:hover { fill: rgba(240,178,92,.6); }
+  .map .land.selected { fill: var(--star); }
+  .map .route { fill: none; stroke: var(--paper); stroke-width: 1.4; stroke-dasharray: 2 5; stroke-linecap: round; opacity: .8; }
+  .map .pin { fill: var(--paper); stroke: var(--night); stroke-width: 1.5; }
+  .map .lbl { font-family: var(--serif); font-size: 22px; fill: var(--ink); paint-order: stroke; stroke: var(--night); stroke-width: 4px; stroke-linejoin: round; pointer-events: none; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 26px; }
+  .tabs button { background: transparent; color: var(--ink); border: 1.5px solid var(--line); border-radius: 999px; padding: 8px 18px; font: inherit; font-weight: 500; cursor: pointer; }
+  .tabs button:hover { border-color: var(--star); }
+  .tabs button[aria-pressed="true"] { background: var(--star); border-color: var(--star); color: #1a1530; }
+  .panel h3.country { font-family: var(--serif); font-weight: 400; font-size: clamp(2rem, 4vw, 3rem); line-height: 1.05; margin: 0 0 22px; }
+  .book { display: grid; grid-template-columns: 110px 1fr; gap: 20px; align-items: start; margin-bottom: 28px; }
+  .book .cover-btn { width: 110px; }
+  .book h4 { font-family: var(--serif); font-weight: 400; font-size: 1.25rem; line-height: 1.2; margin: 2px 0 4px; }
+  .book .by { color: var(--muted); margin: 0 0 8px; font-size: .98rem; }
+  .book .blurb { margin: 0; font-size: .98rem; max-width: 44ch; }
+
+  .join { background: var(--deep); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .join .inner { max-width: 1200px; margin: 0 auto; padding: 64px 28px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 48px; align-items: center; }
+  .join h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(1.8rem, 3.6vw, 2.6rem); margin: 0 0 14px; }
+  .join p { color: var(--muted); margin: 0 0 24px; max-width: 46ch; }
+  .next-card { border: 1.5px solid var(--line); border-radius: 14px; padding: 28px; background: var(--night); }
+  .next-card h3 { font-family: var(--serif); font-weight: 400; margin: 0 0 6px; font-size: 1.4rem; }
+  .next-card dl { margin: 16px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 8px 18px; }
+  .next-card dt { color: var(--muted); }
+  .next-card dd { margin: 0; }
+
+  footer { max-width: 1200px; margin: 0 auto; padding: 36px 28px 48px; color: var(--muted); font-size: .95rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  footer a:hover { color: var(--ink); }
+
+  dialog { border: 1px solid var(--line); border-radius: 16px; background: var(--panel); color: var(--ink); padding: 0; max-width: min(640px, 92vw); width: 100%; }
+  dialog::backdrop { background: rgba(8,9,24,.75); }
+  .dlg { display: grid; grid-template-columns: 180px 1fr; gap: 28px; padding: 28px; }
+  .dlg .cover-btn { cursor: default; }
+  .dlg .cover-btn:hover { transform: none; }
+  .dlg h3 { font-family: var(--serif); font-weight: 400; font-size: 1.6rem; line-height: 1.15; margin: 0 0 4px; }
+  .dlg .by { color: var(--muted); margin: 0 0 6px; }
+  .dlg .from { color: var(--star); font-weight: 600; margin: 0 0 14px; }
+  .dlg .close { grid-column: 1 / -1; justify-self: end; background: none; border: 1px solid var(--line); color: var(--ink); padding: 8px 18px; border-radius: 999px; font: inherit; cursor: pointer; }
+  .dlg .close:hover { border-color: var(--star); }
+
+  @media (max-width: 900px) { .atlas { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) {
+    :root { --cover-w: 130px; --gap: 22px; }
+    .join .inner { grid-template-columns: 1fr; }
+    .dlg { grid-template-columns: 1fr; }
+    .dlg .cover-btn { width: 150px; }
+    .btn.ghost { margin: 10px 0 0; }
+    .voyage-controls { position: static; padding: 0 28px; }
+    .logo { --s: 80px; }
+    .map .lbl { font-size: 30px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .track { animation: none; }
+    .voyage { overflow-x: auto; }
+    .cover-btn { transition: none; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sky">
+  <header class="site">
+    <a class="logo" href="#top" aria-label="Voyacosmo Book Club home">
+      <img src="logo.png" alt="Voyacosmo Book Club">
+    </a>
+    <nav class="main" aria-label="Main">
+      <ul>
+        <li><a href="#countries">Where we've been</a></li>
+        <li><a href="#join">Join us</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <h1>A book club that reads its way around the world.</h1>
+      <p class="lede">Each book we read comes from somewhere. We read it together, meet to talk about it, and mark the country on the map.</p>
+      <a class="btn" href="#join">Join the next meeting</a>
+      <a class="btn ghost" href="#countries">See the map</a>
+    </section>
+
+    <div class="voyage" id="voyage" aria-label="Covers of books we've read, with their countries">
+      <div class="track" id="track"></div>
+      <div class="voyage-controls">
+        <button type="button" id="toggle" aria-pressed="false">Pause</button>
+      </div>
+    </div>
+
+    <section class="block" id="countries">
+      <h2>Where we've been</h2>
+      <p class="sub">Highlighted countries are ones we've read from. The dotted line follows the order we read them. Select a country to see its books.</p>
+      <div class="atlas" id="atlas">
+        <div class="map" id="map"></div>
+        <div class="panel">
+          <div class="tabs" id="tabs"></div>
+          <div id="panel" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="join" id="join">
+      <div class="inner">
+        <div>
+          <h2>Come read with us</h2>
+          <p>New members are always welcome. Read along with the current book, or just show up and listen.</p>
+          <a class="btn" href="mailto:hello@example.com">Email us to join</a>
+        </div>
+        <div class="next-card">
+          <h3>Next meeting</h3>
+          <p style="margin:0;color:var(--muted)">Placeholder details, replace with yours.</p>
+          <dl>
+            <dt>Book</dt><dd>To be announced</dd>
+            <dt>Country</dt><dd>To be announced</dd>
+            <dt>When</dt><dd>Date and time</dd>
+            <dt>Where</dt><dd>Location or video link</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <span>Voyacosmo Book Club</span>
+    <span>Covers via <a href="https://openlibrary.org" rel="noopener">Open Library</a>. Cover art belongs to its publishers and artists.</span>
+  </footer>
+</div>
+
+<dialog id="dlg" aria-labelledby="dlg-title">
+  <div class="dlg" id="dlg-body"></div>
+</dialog>
+
+<!-- Map libraries (free, loaded from a CDN). If they fail to load, the page still works without the map. -->
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script>
+  /* ---------------------------------------------------------------
+     YOUR BOOKS. Add one object per book, in the order you read them.
+     country: must match the world map's spelling, e.g. "Russia", "Colombia",
+              "United States of America", "United Kingdom", "Czechia", "Japan".
+     isbn:    used to fetch the cover from Open Library. Any edition works;
+              if the cover is missing, try another edition's ISBN.
+     coverId: optional. An Open Library cover ID (no rate limit). Beats isbn.
+     cover:   optional. Your own image path (e.g. "covers/mine.jpg"). Beats both.
+     anchor:  optional [longitude, latitude] for the route dot (defaults to the country's center).
+     --------------------------------------------------------------- */
+  const BOOKS = [
+    {
+      title: "The Brothers Karamazov",
+      author: "Fyodor Dostoevsky",
+      country: "Russia",
+      isbn: "9780374528379",
+      anchor: [37.62, 55.75],
+      blurb: "Three brothers, one murdered father, and a long argument about faith, doubt and responsibility.",
+      colors: ["#5b2a2f", "#f3d9b1"]
+    },
+    {
+      title: "One Hundred Years of Solitude",
+      author: "Gabriel García Márquez",
+      country: "Colombia",
+      isbn: "9780060883287",
+      anchor: [-74.07, 4.71],
+      blurb: "Seven generations of the Buendía family rise and fall in the town of Macondo.",
+      colors: ["#1f5a54", "#f6e6a8"]
+    }
+  ];
+
+  const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
+  const $ = (s, r = document) => r.querySelector(s);
+  const COUNTRIES = [...new Set(BOOKS.map(b => b.country))];
+  const booksIn = c => BOOKS.filter(b => b.country === c);
+
+  function coverUrl(b) {
+    if (b.cover) return b.cover;
+    if (b.coverId) return `https://covers.openlibrary.org/b/id/${b.coverId}-L.jpg?default=false`;
+    if (b.isbn) return `https://covers.openlibrary.org/b/isbn/${b.isbn}-L.jpg?default=false`;
+    return "";
+  }
+  const olLink = b => b.isbn ? `https://openlibrary.org/isbn/${b.isbn}` : "";
+
+  /* A cover: the real image if it loads, otherwise a designed placeholder. */
+  function fillCover(box, book) {
+    const fallback = () => {
+      box.innerHTML = "";
+      const f = document.createElement("span");
+      f.className = "cover-fallback";
+      f.style.background = book.colors[0];
+      f.style.color = book.colors[1];
+      const orb = Object.assign(document.createElement("span"), { className: "orb" });
+      orb.style.background = `radial-gradient(circle at 35% 35%, ${book.colors[1]}, transparent 70%)`;
+      orb.style.boxShadow = `0 0 0 2px ${book.colors[1]}55`;
+      const t = Object.assign(document.createElement("span"), { className: "t", textContent: book.title });
+      const a = Object.assign(document.createElement("span"), { className: "a", textContent: book.author });
+      f.append(orb, t, a);
+      box.appendChild(f);
+    };
+    const url = coverUrl(book);
+    if (!url) return fallback();
+    const img = new Image();
+    img.alt = `Cover of ${book.title}`;
+    img.decoding = "async";
+    img.onerror = fallback;
+    img.src = url;
+    box.appendChild(img);
+  }
+
+  function coverButton(book) {
+    const b = document.createElement("button");
+    b.className = "cover-btn";
+    b.type = "button";
+    b.setAttribute("aria-label", `${book.title} by ${book.author}, from ${book.country}. Show details`);
+    fillCover(b, book);
+    b.addEventListener("click", () => openDialog(book));
+    return b;
+  }
+
+  /* Carousel: repeat the list until one half is wider than the screen, then double for a seamless loop. */
+  function buildTrack() {
+    const track = $("#track");
+    track.innerHTML = "";
+    const perHalf = Math.max(BOOKS.length, Math.ceil((window.innerWidth * 1.3) / 200));
+    const half = [];
+    while (half.length < perHalf) BOOKS.forEach(b => half.push(b));
+    [...half, ...half].forEach((b, i) => {
+      const fig = document.createElement("figure");
+      fig.className = "stop";
+      const cap = document.createElement("figcaption");
+      cap.textContent = b.country;
+      fig.append(coverButton(b), cap);
+      if (i >= half.length) { fig.setAttribute("aria-hidden", "true"); fig.querySelector("button").tabIndex = -1; }
+      track.appendChild(fig);
+    });
+    track.style.animationDuration = Math.max(40, half.length * 8) + "s";
+  }
+
+  /* Detail dialog */
+  const dlg = $("#dlg");
+  function openDialog(book) {
+    const body = $("#dlg-body");
+    body.innerHTML = "";
+    const c = document.createElement("span");
+    c.className = "cover-btn";
+    fillCover(c, book);
+    const t = document.createElement("div");
+    t.innerHTML = "<h3 id='dlg-title'></h3><p class='by'></p><p class='from'></p><p class='blurb'></p>";
+    t.children[0].textContent = book.title;
+    t.children[1].textContent = book.author;
+    t.children[2].textContent = "From " + book.country;
+    t.children[3].textContent = book.blurb;
+    if (olLink(book)) {
+      const a = Object.assign(document.createElement("a"), { href: olLink(book), textContent: "View on Open Library", rel: "noopener" });
+      a.target = "_blank";
+      const p = document.createElement("p"); p.append(a); t.appendChild(p);
+    }
+    const close = Object.assign(document.createElement("button"), { className: "close", type: "button", textContent: "Close" });
+    close.addEventListener("click", () => dlg.close());
+    body.append(c, t, close);
+    dlg.showModal();
+  }
+  dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+
+  /* Country tabs + panel */
+  let selected = COUNTRIES[0];
+  function renderTabs() {
+    const tabs = $("#tabs");
+    tabs.innerHTML = "";
+    COUNTRIES.forEach(c => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = c;
+      b.setAttribute("aria-pressed", c === selected);
+      b.addEventListener("click", () => select(c));
+      tabs.appendChild(b);
+    });
+  }
+  function renderPanel() {
+    const panel = $("#panel");
+    panel.className = "panel";
+    panel.innerHTML = "";
+    const h = Object.assign(document.createElement("h3"), { className: "country", textContent: selected || "" });
+    panel.appendChild(h);
+    booksIn(selected).forEach(b => {
+      const row = document.createElement("article");
+      row.className = "book";
+      row.appendChild(coverButton(b));
+      const txt = document.createElement("div");
+      txt.innerHTML = "<h4></h4><p class='by'></p><p class='blurb'></p>";
+      txt.children[0].textContent = b.title;
+      txt.children[1].textContent = b.author;
+      txt.children[2].textContent = b.blurb;
+      row.appendChild(txt);
+      panel.appendChild(row);
+    });
+  }
+  function select(c) {
+    selected = c;
+    renderTabs(); renderPanel();
+    if (window.d3) d3.selectAll("#map .land.visited").classed("selected", d => d.properties.name === c);
+  }
+
+  /* World map */
+  async function drawMap() {
+    const atlas = $("#atlas"), mapEl = $("#map");
+    if (!window.d3 || !window.topojson) { mapEl.hidden = true; atlas.classList.add("no-map"); return; }
+    try {
+      const world = await (await fetch(WORLD_URL)).json();
+      const features = topojson.feature(world, world.objects.countries).features.filter(f => f.properties.name !== "Antarctica");
+      const W = 960, H = 500;
+      const proj = d3.geoNaturalEarth1().fitExtent([[8, 8], [W - 8, H - 8]], { type: "FeatureCollection", features });
+      const path = d3.geoPath(proj);
+      const svg = d3.select(mapEl).append("svg").attr("viewBox", `0 0 ${W} ${H}`)
+        .attr("role", "group").attr("aria-label", "World map. Countries we've read from are highlighted.");
+
+      svg.append("path").attr("class", "grat").attr("d", path(d3.geoGraticule10()));
+      svg.append("path").attr("class", "sea").attr("d", path({ type: "Sphere" }));
+
+      const visited = new Set(COUNTRIES);
+      const nBooks = n => booksIn(n).length + (booksIn(n).length === 1 ? " book" : " books");
+      svg.append("g").selectAll("path").data(features).join("path")
+        .attr("class", d => "land" + (visited.has(d.properties.name) ? " visited" : ""))
+        .attr("d", path)
+        .each(function (d) {
+          if (!visited.has(d.properties.name)) return;
+          const n = d.properties.name;
+          d3.select(this).attr("tabindex", 0).attr("role", "button")
+            .attr("aria-label", `${n}, ${nBooks(n)}. Show books`)
+            .on("click", () => select(n))
+            .on("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(n); } });
+        });
+
+      /* The voyage: a dotted route through the countries, in reading order. */
+      const anchorFor = c => {
+        const b = booksIn(c).find(x => x.anchor);
+        if (b) return b.anchor;
+        const f = features.find(x => x.properties.name === c);
+        return f ? d3.geoCentroid(f) : null;
+      };
+      const stops = COUNTRIES.map(c => ({ c, xy: anchorFor(c) })).filter(s => s.xy);
+      if (stops.length > 1) svg.append("path").attr("class", "route").attr("d", path({ type: "LineString", coordinates: stops.map(s => s.xy) }));
+      stops.forEach(s => {
+        const [x, y] = proj(s.xy);
+        svg.append("circle").attr("class", "pin").attr("cx", x).attr("cy", y).attr("r", 4.5);
+      });
+
+      /* Labels */
+      svg.append("g").selectAll("text").data(features.filter(f => visited.has(f.properties.name))).join("text")
+        .attr("class", "lbl").attr("text-anchor", "middle")
+        .attr("transform", d => { const [x, y] = proj(anchorFor(d.properties.name) || d3.geoCentroid(d)); return `translate(${x},${y - 12})`; })
+        .text(d => d.properties.name);
+
+      select(selected);
+    } catch (err) {
+      mapEl.hidden = true; atlas.classList.add("no-map");
+    }
+  }
+
+  const toggle = $("#toggle"), voyage = $("#voyage");
+  toggle.addEventListener("click", () => {
+    const paused = voyage.classList.toggle("paused");
+    toggle.textContent = paused ? "Play" : "Pause";
+    toggle.setAttribute("aria-pressed", paused);
+  });
+
+  buildTrack(); renderTabs(); renderPanel(); drawMap();
+  let rz; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(buildTrack, 250); });
+</script>
+</body>
+</html>
