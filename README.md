@@ -1,1 +1,0 @@
-# Voyacosmo-Book-Club
