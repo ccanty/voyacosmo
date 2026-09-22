@@ -74,9 +74,8 @@
   .voyage::before, .voyage::after { content: ""; position: absolute; top: 0; bottom: 0; width: 12vw; max-width: 160px; z-index: 2; pointer-events: none; }
   .voyage::before { left: 0; background: linear-gradient(90deg, var(--night), transparent); }
   .voyage::after { right: 0; background: linear-gradient(-90deg, var(--night), transparent); }
-  .track { display: flex; gap: var(--gap); width: max-content; padding: 20px 0; animation: drift 60s linear infinite; }
-  .voyage:hover .track, .voyage:focus-within .track, .voyage.paused .track { animation-play-state: paused; }
-  @keyframes drift { to { transform: translateX(-50%); } }
+  .track { display: flex; gap: var(--gap); width: max-content; padding: 20px 0; touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; }
+  .voyage.dragging .track { cursor: grabbing; }
   figure.stop { margin: 0; flex: none; width: var(--cover-w); }
   figure.stop:nth-child(odd) { margin-top: 18px; }
   figure.stop figcaption { margin-top: 14px; text-align: center; font-family: var(--serif); font-size: 1.05rem; color: var(--paper); }
@@ -159,8 +158,8 @@
     .join .join-card { display: block; max-width: none; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .track { animation: none; }
-    .voyage { overflow-x: auto; }
+    .voyage.reduced-motion { overflow-x: auto; }
+    .voyage.reduced-motion .track { cursor: auto; touch-action: pan-x; }
     .cover-btn { transition: none; }
     html { scroll-behavior: auto; }
   }
@@ -428,6 +427,9 @@
   const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
   const $ = (s, r = document) => r.querySelector(s);
 
+  /* Cover carousel state (auto-rotates, but draggable — see setupCarousel below) */
+  let voyagePos = 0, halfWidth = 0;
+
   /* Year picker: which books/countries show on the map. "all" shows everything. */
   const YEARS = [...new Set(BOOKS.filter(b => b.date).map(b => new Date(b.date).getFullYear()))].sort();
   let selectedYear = YEARS.length ? YEARS[YEARS.length - 1] : "all";
@@ -495,7 +497,11 @@
       if (i >= half.length) { fig.setAttribute("aria-hidden", "true"); fig.querySelector("button").tabIndex = -1; }
       track.appendChild(fig);
     });
-    track.style.animationDuration = Math.max(40, half.length * 8) + "s";
+    requestAnimationFrame(() => {
+      halfWidth = track.scrollWidth / 2;
+      voyagePos = ((voyagePos % halfWidth) + halfWidth) % halfWidth - halfWidth;
+      applyTransform();
+    });
   }
 
   /* "This month's pick" hero card: auto-picks whichever book's date falls in the
@@ -714,12 +720,83 @@
     }
   }
 
-  const toggle = $("#toggle"), voyage = $("#voyage");
+  /* Carousel: auto-rotates at a cruise speed, but a finger or cursor drag can spin
+     it faster/slower (or reverse it) with momentum; it eases back to cruise speed
+     once released. Falls back to plain native scrolling for prefers-reduced-motion. */
+  const CRUISE = -0.035;   // px/ms baseline autoplay speed
+  const EASE = 0.0035;     // how quickly velocity eases toward its target, per ms
+  let velocity = 0, dragging = false, pointerId = null, lastX = 0, lastT = 0, dragDist = 0;
+  let hovering = false, focusPaused = false, manualPaused = false, suppressClick = false;
+  let lastFrameT = null;
+
+  function applyTransform() { track.style.transform = `translateX(${voyagePos}px)`; }
+  function wrapPos() {
+    if (halfWidth <= 0) return;
+    if (voyagePos <= -halfWidth) voyagePos += halfWidth;
+    else if (voyagePos > 0) voyagePos -= halfWidth;
+  }
+  function frame(t) {
+    if (lastFrameT == null) lastFrameT = t;
+    const dt = Math.min(t - lastFrameT, 50);
+    lastFrameT = t;
+    if (!dragging) {
+      const target = (hovering || focusPaused || manualPaused) ? 0 : CRUISE;
+      velocity += (target - velocity) * Math.min(1, dt * EASE);
+      voyagePos += velocity * dt;
+      wrapPos();
+      applyTransform();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function setupCarousel() {
+    track.addEventListener("pointerdown", e => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      dragging = true; dragDist = 0;
+      pointerId = e.pointerId;
+      track.setPointerCapture(pointerId);
+      lastX = e.clientX; lastT = performance.now();
+      voyage.classList.add("dragging");
+    });
+    track.addEventListener("pointermove", e => {
+      if (!dragging || e.pointerId !== pointerId) return;
+      const now = performance.now();
+      const dx = e.clientX - lastX;
+      const dt = Math.max(now - lastT, 1);
+      voyagePos += dx;
+      dragDist += Math.abs(dx);
+      wrapPos();
+      applyTransform();
+      velocity = dx / dt;
+      lastX = e.clientX; lastT = now;
+    });
+    const endDrag = e => {
+      if (!dragging || (pointerId != null && e.pointerId !== pointerId)) return;
+      dragging = false;
+      voyage.classList.remove("dragging");
+      velocity = Math.max(-2.2, Math.min(2.2, velocity));
+      if (dragDist > 6) suppressClick = true;
+    };
+    track.addEventListener("pointerup", endDrag);
+    track.addEventListener("pointercancel", endDrag);
+    track.addEventListener("click", e => { if (suppressClick) { e.preventDefault(); e.stopPropagation(); suppressClick = false; } }, true);
+    voyage.addEventListener("mouseenter", () => hovering = true);
+    voyage.addEventListener("mouseleave", () => hovering = false);
+    voyage.addEventListener("focusin", () => focusPaused = true);
+    voyage.addEventListener("focusout", () => focusPaused = false);
+    requestAnimationFrame(frame);
+  }
+
+  const toggle = $("#toggle"), voyage = $("#voyage"), track = $("#track");
   toggle.addEventListener("click", () => {
-    const paused = voyage.classList.toggle("paused");
-    toggle.textContent = paused ? "Play" : "Pause";
-    toggle.setAttribute("aria-pressed", paused);
+    manualPaused = !manualPaused;
+    toggle.textContent = manualPaused ? "Play" : "Pause";
+    toggle.setAttribute("aria-pressed", manualPaused);
   });
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduceMotion) { voyage.classList.add("reduced-motion"); $(".voyage-controls").hidden = true; }
+  else setupCarousel();
 
   buildTrack(); renderYearTabs(); renderTabs(); renderPanel(); loadMap();
   renderNowReading(); renderStats();
