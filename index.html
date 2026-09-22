@@ -60,6 +60,15 @@
   .btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--line); margin-left: 10px; }
   .btn.ghost:hover { border-color: var(--star); box-shadow: none; }
 
+  /* Currently reading card */
+  .now-reading { margin-top: 30px; display: flex; align-items: center; gap: 20px; max-width: 440px; padding: 18px 22px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+  .now-reading .cover-btn { width: 64px; flex: none; }
+  .now-reading .txt { min-width: 0; }
+  .now-reading .eyebrow { font-size: .72rem; letter-spacing: .09em; text-transform: uppercase; color: var(--star); font-weight: 600; margin: 0 0 5px; }
+  .now-reading h3 { font-family: var(--serif); font-weight: 400; font-size: 1.14rem; margin: 0 0 3px; line-height: 1.2; }
+  .now-reading .meta { color: var(--muted); font-size: .88rem; margin: 0 0 7px; }
+  .now-reading .msg { font-size: .85rem; color: var(--muted); margin: 0; max-width: 26ch; line-height: 1.4; }
+
   /* Cover carousel */
   .voyage { position: relative; padding: 16px 0 60px; overflow: hidden; }
   .voyage::before, .voyage::after { content: ""; position: absolute; top: 0; bottom: 0; width: 12vw; max-width: 160px; z-index: 2; pointer-events: none; }
@@ -86,6 +95,12 @@
   section.block h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(1.8rem, 3.6vw, 2.6rem); margin: 0 0 12px; }
   section.block > p.sub { color: var(--muted); margin: 0 0 36px; max-width: 54ch; }
 
+  .year-tabs { margin-bottom: 22px; }
+  .stats-row { display: flex; gap: 40px; flex-wrap: wrap; margin: -14px 0 30px; }
+  .stat { display: flex; flex-direction: column; }
+  .stat-num { font-family: var(--serif); font-size: 2rem; color: var(--star); line-height: 1; }
+  .stat-label { color: var(--muted); font-size: .85rem; margin-top: 4px; }
+
   /* Atlas */
   .atlas { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 44px; align-items: start; }
   .atlas.no-map { grid-template-columns: 1fr; }
@@ -111,22 +126,18 @@
   .book .blurb { margin: 0; font-size: .98rem; max-width: 44ch; }
 
   .join { background: var(--deep); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-  .join .inner { max-width: 1200px; margin: 0 auto; padding: 64px 28px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 48px; align-items: center; }
-  .join h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(1.8rem, 3.6vw, 2.6rem); margin: 0 0 14px; }
-  .join p { color: var(--muted); margin: 0 0 24px; max-width: 46ch; }
-  .next-card { border: 1.5px solid var(--line); border-radius: 14px; padding: 28px; background: var(--night); }
-  .next-card h3 { font-family: var(--serif); font-weight: 400; margin: 0 0 6px; font-size: 1.4rem; }
-  .next-card dl { margin: 16px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 8px 18px; }
-  .next-card dt { color: var(--muted); }
-  .next-card dd { margin: 0; }
+  .join .inner { max-width: 640px; margin: 0 auto; padding: 64px 28px; text-align: center; }
+  .join .join-card { display: inline-block; text-align: left; padding: 34px 40px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); max-width: 440px; }
+  .join h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(1.7rem, 3.4vw, 2.4rem); margin: 0 0 14px; }
+  .join p { color: var(--muted); margin: 0 0 24px; max-width: 42ch; }
 
   footer { max-width: 1200px; margin: 0 auto; padding: 36px 28px 48px; color: var(--muted); font-size: .95rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
   footer a:hover { color: var(--ink); }
 
   dialog { border: 1px solid var(--line); border-radius: 16px; background: var(--panel); color: var(--ink); padding: 0; max-width: min(640px, 92vw); width: 100%; }
   dialog::backdrop { background: rgba(8,9,24,.75); }
-  .dlg { display: grid; grid-template-columns: 180px 1fr; gap: 28px; padding: 28px; }
-  .dlg .cover-btn { cursor: default; }
+  .dlg { display: grid; grid-template-columns: 180px 1fr; gap: 28px; padding: 28px; border-radius: 16px; }
+  .dlg .cover-btn { cursor: default; box-shadow: 0 8px 20px rgba(0,0,0,.4); }
   .dlg .cover-btn:hover { transform: none; }
   .dlg h3 { font-family: var(--serif); font-weight: 400; font-size: 1.6rem; line-height: 1.15; margin: 0 0 4px; }
   .dlg .by { color: var(--muted); margin: 0 0 6px; }
@@ -137,13 +148,15 @@
   @media (max-width: 900px) { .atlas { grid-template-columns: 1fr; } }
   @media (max-width: 760px) {
     :root { --cover-w: 130px; --gap: 22px; }
-    .join .inner { grid-template-columns: 1fr; }
     .dlg { grid-template-columns: 1fr; }
     .dlg .cover-btn { width: 150px; }
     .btn.ghost { margin: 10px 0 0; }
     .voyage-controls { position: static; padding: 0 28px; }
     .logo { --s: 80px; }
     .map .lbl { font-size: 30px; }
+    .now-reading { max-width: none; }
+    .stats-row { gap: 28px; }
+    .join .join-card { display: block; max-width: none; }
   }
   @media (prefers-reduced-motion: reduce) {
     .track { animation: none; }
@@ -172,8 +185,9 @@
     <section class="hero">
       <h1>A book club that reads its way around the world.</h1>
       <p class="lede">Each book we read comes from somewhere. We read it together, meet to talk about it, and mark the country on the map.</p>
-      <a class="btn" href="#join">Join the next meeting</a>
+      <a class="btn" href="#join">Join the club</a>
       <a class="btn ghost" href="#countries">See the map</a>
+      <div class="now-reading" id="nowReading" hidden></div>
     </section>
 
     <div class="voyage" id="voyage" aria-label="Covers of books we've read, with their countries">
@@ -186,6 +200,8 @@
     <section class="block" id="countries">
       <h2>Where we've been</h2>
       <p class="sub">Highlighted countries are ones we've read from. The dotted line follows the order we read them. Select a country to see its books.</p>
+      <div class="tabs year-tabs" id="yearTabs"></div>
+      <div class="stats-row" id="statsRow"></div>
       <div class="atlas" id="atlas">
         <div class="map" id="map"></div>
         <div class="panel">
@@ -197,20 +213,10 @@
 
     <div class="join" id="join">
       <div class="inner">
-        <div>
+        <div class="join-card">
           <h2>Come read with us</h2>
           <p>New members are always welcome. Read along with the current book, or just show up and listen.</p>
           <a class="btn" href="mailto:hello@example.com">Email us to join</a>
-        </div>
-        <div class="next-card">
-          <h3>Next meeting</h3>
-          <p style="margin:0;color:var(--muted)">Placeholder details, replace with yours.</p>
-          <dl>
-            <dt>Book</dt><dd>To be announced</dd>
-            <dt>Country</dt><dd>To be announced</dd>
-            <dt>When</dt><dd>Date and time</dd>
-            <dt>Where</dt><dd>Location or video link</dd>
-          </dl>
         </div>
       </div>
     </div>
@@ -231,7 +237,8 @@
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
 <script>
   /* ---------------------------------------------------------------
-     YOUR BOOKS. Add one object per book, in the order you read them.
+     YOUR BOOKS. Add one object per book. Order doesn't matter — the
+     list is sorted by date automatically (undated books go last).
      country: must match the world map's spelling, e.g. "Russia", "Colombia",
               "United States of America", "United Kingdom", "Czechia", "Japan".
      isbn:    used to fetch the cover from Open Library. Any edition works;
@@ -239,16 +246,41 @@
      coverId: optional. An Open Library cover ID (no rate limit). Beats isbn.
      cover:   optional. Your own image path (e.g. "covers/mine.jpg"). Beats both.
      anchor:  optional [longitude, latitude] for the route dot (defaults to the country's center).
+     date:    optional "YYYY-MM-DD" for when the club read it. Powers the year
+              picker on the map (a book with no date only shows under "All years")
+              and the "This month's pick" hero card, which auto-picks whichever
+              book's date falls in the current month.
      --------------------------------------------------------------- */
-  const BOOKS = [
+  const BOOKS_RAW = [
     {
       title: "The Brothers Karamazov",
       author: "Fyodor Dostoevsky",
       country: "Russia",
       isbn: "9780374528379",
       anchor: [37.62, 55.75],
+      date: "2025-01-20",
       blurb: "Three brothers, one murdered father, and a long argument about faith, doubt and responsibility.",
       colors: ["#5b2a2f", "#f3d9b1"]
+    },
+    {
+      title: "Misery",
+      author: "Stephen King",
+      country: "United States of America",
+      isbn: "9781501143106",
+      anchor: [-77.03, 38.90],
+      date: "2025-03-15",
+      blurb: "A novelist's number one fan keeps him alive — and captive — until he writes the book she wants.",
+      colors: ["#4a0e0e", "#e8dcae"]
+    },
+    {
+      title: "Chronicles",
+      author: "Bob Dylan",
+      country: "United States of America",
+      isbn: "9780743244589",
+      anchor: [-77.03, 38.90],
+      date: "2025-04-15",
+      blurb: "Bob Dylan's own telling of Greenwich Village, fame, and the making of a voice that reshaped American song.",
+      colors: ["#1c2b3a", "#e8dcae"]
     },
     {
       title: "One Hundred Years of Solitude",
@@ -256,15 +288,152 @@
       country: "Colombia",
       isbn: "9780060883287",
       anchor: [-74.07, 4.71],
+      date: "2025-07-15",
       blurb: "Seven generations of the Buendía family rise and fall in the town of Macondo.",
       colors: ["#1f5a54", "#f6e6a8"]
+    },
+    {
+      title: "The Death of Artemio Cruz",
+      author: "Carlos Fuentes",
+      country: "Mexico",
+      isbn: "9780374531805",
+      anchor: [-99.13, 19.43],
+      date: "2025-08-15",
+      blurb: "A dying press baron relives the choices, betrayals and ambitions of his rise through revolutionary Mexico.",
+      colors: ["#5a3116", "#f0d9a8"]
+    },
+    {
+      title: "Edgar Allan Poe: Collected Tales and Poems",
+      author: "Edgar Allan Poe",
+      country: "United States of America",
+      anchor: [-77.03, 38.90],
+      date: "2025-10-15",
+      blurb: "A dive into Poe's gothic short stories and poems — dread, obsession and the macabre.",
+      colors: ["#1a1a1a", "#c9a15a"]
+    },
+    {
+      title: "A Happy Death",
+      author: "Albert Camus",
+      country: "Algeria",
+      isbn: "9780679764007",
+      anchor: [3.06, 36.75],
+      date: "2025-12-15",
+      blurb: "Camus's early, sun-drenched novel about a man who kills for his freedom and searches for how to die happy.",
+      colors: ["#0e3a4a", "#f2d98c"]
+    },
+    {
+      title: "War and Peace",
+      author: "Leo Tolstoy",
+      country: "Russia",
+      isbn: "9780140447934",
+      anchor: [37.62, 55.75],
+      date: "2026-02-15",
+      blurb: "Napoleon's invasion of Russia, and the loves and reckonings of three families caught up in it.",
+      colors: ["#5c1f1f", "#e8c9a0"]
+    },
+    {
+      title: "Thousand Cranes",
+      author: "Yasunari Kawabata",
+      country: "Japan",
+      isbn: "9780679762652",
+      anchor: [139.69, 35.68],
+      date: "2026-05-15",
+      blurb: "A tea ceremony pulls a young man into his late father's tangled love affairs.",
+      colors: ["#2c3a2e", "#f2e3c6"]
+    },
+    {
+      title: "The Passion According to G.H.",
+      author: "Clarice Lispector",
+      country: "Brazil",
+      isbn: "9780811219686",
+      anchor: [-47.93, -15.78],
+      date: "2026-06-15",
+      blurb: "A sculptor's ordinary morning collapses into a shattering, mystical crisis after she kills a cockroach.",
+      colors: ["#3a1f3a", "#e0b8d8"]
+    },
+    {
+      title: "We Die Alone",
+      author: "David Howarth",
+      country: "Norway",
+      isbn: "9781493023455",
+      anchor: [10.75, 59.91],
+      date: "2026-07-15",
+      blurb: "A Norwegian resistance fighter's near-impossible escape across arctic Norway, hunted by the Nazis.",
+      colors: ["#16324a", "#dbe7f0"]
+    },
+    {
+      title: "The Chosen One",
+      author: "E. Douglas Brown",
+      country: "Canada",
+      anchor: [-75.69, 45.42],
+      date: "2026-08-15",
+      blurb: "Add a blurb here — and double-check the author/ISBN for this one; we couldn't confirm the exact edition.",
+      colors: ["#2b2b52", "#d8c9e8"]
+    },
+    {
+      title: "Martyr!",
+      author: "Kaveh Akbar",
+      country: "Iran",
+      isbn: "9780593537619",
+      anchor: [51.39, 35.69],
+      date: "2026-09-15",
+      blurb: "An Iranian-American poet obsessed with martyrdom searches for meaning in his mother's death and his own recovery.",
+      colors: ["#3a1414", "#e8b98c"]
+    },
+    {
+      title: "Siddhartha",
+      author: "Hermann Hesse",
+      country: "India",
+      isbn: "9780553208849",
+      anchor: [77.21, 28.61],
+      blurb: "A wealthy young Brahmin renounces comfort to seek enlightenment along the banks of a river.",
+      colors: ["#2e4a34", "#e8d9a0"]
+    },
+    {
+      title: "Devil in the White City",
+      author: "Erik Larson",
+      country: "United States of America",
+      isbn: "9780375725609",
+      anchor: [-77.03, 38.90],
+      blurb: "The architect of the 1893 World's Fair and the serial killer who stalked its fairgrounds, intertwined in Gilded Age Chicago.",
+      colors: ["#1c1c1c", "#d4af6a"]
+    },
+    {
+      title: "Every Man for Himself and God Against All",
+      author: "Werner Herzog",
+      country: "Germany",
+      isbn: "9780593490297",
+      anchor: [13.40, 52.52],
+      blurb: "Werner Herzog's own hallucinatory memoir of a childhood in ruins and a life spent chasing the impossible shot.",
+      colors: ["#2a2a2a", "#c9c9c9"]
+    },
+    {
+      title: "Father Goriot",
+      author: "Honoré de Balzac",
+      country: "France",
+      isbn: "9780140440171",
+      anchor: [2.35, 48.85],
+      blurb: "A doting father sacrifices everything for his ungrateful daughters in Balzac's portrait of Restoration Paris.",
+      colors: ["#4a2c1a", "#e0c9a0"]
     }
   ];
+  /* Sorted so the map route and carousel follow actual reading order; undated books go last. */
+  const BOOKS = [...BOOKS_RAW].sort((a, b) => {
+    if (!a.date && !b.date) return 0;
+    if (!a.date) return 1;
+    if (!b.date) return -1;
+    return new Date(a.date) - new Date(b.date);
+  });
 
   const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
   const $ = (s, r = document) => r.querySelector(s);
-  const COUNTRIES = [...new Set(BOOKS.map(b => b.country))];
-  const booksIn = c => BOOKS.filter(b => b.country === c);
+
+  /* Year picker: which books/countries show on the map. "all" shows everything. */
+  const YEARS = [...new Set(BOOKS.filter(b => b.date).map(b => new Date(b.date).getFullYear()))].sort();
+  let selectedYear = YEARS.length ? YEARS[YEARS.length - 1] : "all";
+  const yearBooks = () => selectedYear === "all" ? BOOKS : BOOKS.filter(b => b.date && new Date(b.date).getFullYear() === selectedYear);
+  let COUNTRIES = [...new Set(yearBooks().map(b => b.country))];
+  const booksIn = c => yearBooks().filter(b => b.country === c);
 
   function coverUrl(b) {
     if (b.cover) return b.cover;
@@ -328,6 +497,92 @@
     });
     track.style.animationDuration = Math.max(40, half.length * 8) + "s";
   }
+
+  /* "This month's pick" hero card: auto-picks whichever book's date falls in the
+     current month, falling back to the most recently read book, then the first book. */
+  function currentBook() {
+    const now = new Date();
+    const inCurrentMonth = b => b.date && (d => d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth())(new Date(b.date));
+    const hit = BOOKS.find(inCurrentMonth);
+    if (hit) return hit;
+    const past = BOOKS.filter(b => b.date && new Date(b.date) <= now);
+    if (past.length) return past[past.length - 1];
+    return BOOKS[0] || null;
+  }
+
+  function renderNowReading() {
+    const el = $("#nowReading");
+    const book = currentBook();
+    if (!book) { el.hidden = true; return; }
+    el.hidden = false;
+    el.innerHTML = "";
+    el.appendChild(coverButton(book));
+    const txt = document.createElement("div");
+    txt.className = "txt";
+    txt.innerHTML = "<p class='eyebrow'>This month's pick</p><h3></h3><p class='meta'></p><p class='msg'></p>";
+    txt.querySelector("h3").textContent = book.title;
+    txt.querySelector(".meta").textContent = `${book.author} — ${book.country}`;
+    txt.querySelector(".msg").textContent = book.blurb;
+    el.appendChild(txt);
+  }
+
+  /* Distance traveled: haversine between countries' anchors, in reading order */
+  function haversineKm(a, b) {
+    const R = 6371, toRad = d => d * Math.PI / 180;
+    const [lon1, lat1] = a, [lon2, lat2] = b;
+    const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
+    const s = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s));
+  }
+  function readingStops() {
+    const seen = new Set(), stops = [];
+    yearBooks().forEach(b => { if (!seen.has(b.country) && b.anchor) { seen.add(b.country); stops.push(b.anchor); } });
+    return stops;
+  }
+  function animateCount(el, target) {
+    if (!el) return;
+    if (!target) { el.textContent = "0"; return; }
+    const dur = 900, start = performance.now();
+    (function step(t) {
+      const p = Math.min(1, (t - start) / dur);
+      el.textContent = Math.round(target * (1 - (1 - p) ** 3)).toLocaleString();
+      if (p < 1) requestAnimationFrame(step);
+    })(start);
+  }
+  function renderStats() {
+    const row = $("#statsRow");
+    const stops = readingStops();
+    let km = 0;
+    for (let i = 1; i < stops.length; i++) km += haversineKm(stops[i - 1], stops[i]);
+    const suffix = selectedYear === "all" ? "" : ` in ${selectedYear}`;
+    row.innerHTML = `<div class="stat"><span class="stat-num" id="statKm">0</span><span class="stat-label">km traveled${suffix}</span></div>
+      <div class="stat"><span class="stat-num" id="statCountries">0</span><span class="stat-label">${COUNTRIES.length === 1 ? "country" : "countries"} visited${suffix}</span></div>`;
+    animateCount($("#statKm"), Math.round(km));
+    animateCount($("#statCountries"), COUNTRIES.length);
+  }
+
+  /* Year picker (tabs above the map) */
+  function renderYearTabs() {
+    const wrap = $("#yearTabs");
+    if (!wrap) return;
+    wrap.innerHTML = "";
+    const options = [...YEARS, "all"];
+    options.forEach(y => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = y === "all" ? "All years" : y;
+      b.setAttribute("aria-pressed", y === selectedYear);
+      b.addEventListener("click", () => {
+        if (y === selectedYear) return;
+        selectedYear = y;
+        COUNTRIES = [...new Set(yearBooks().map(b2 => b2.country))];
+        selected = COUNTRIES.includes(selected) ? selected : COUNTRIES[0];
+        renderYearTabs(); renderTabs(); renderPanel(); updateMapYear(); renderStats();
+      });
+      wrap.appendChild(b);
+    });
+  }
+
 
   /* Detail dialog */
   const dlg = $("#dlg");
@@ -395,55 +650,64 @@
   }
 
   /* World map */
-  async function drawMap() {
+  let mapSvg = null, mapProj = null, mapPath = null, mapFeatures = null;
+
+  function updateMapYear() {
+    if (!mapSvg) return;
+    const visited = new Set(COUNTRIES);
+    const nBooks = n => booksIn(n).length + (booksIn(n).length === 1 ? " book" : " books");
+
+    mapSvg.selectAll(".land")
+      .attr("class", d => "land" + (visited.has(d.properties.name) ? " visited" : "") + (d.properties.name === selected ? " selected" : ""))
+      .attr("tabindex", d => visited.has(d.properties.name) ? 0 : null)
+      .attr("aria-label", d => visited.has(d.properties.name) ? `${d.properties.name}, ${nBooks(d.properties.name)}. Show books` : null);
+
+    mapSvg.selectAll(".route, .pin, .lbl").remove();
+
+    const anchorFor = c => {
+      const b = booksIn(c).find(x => x.anchor);
+      if (b) return b.anchor;
+      const f = mapFeatures.find(x => x.properties.name === c);
+      return f ? d3.geoCentroid(f) : null;
+    };
+    const stops = COUNTRIES.map(c => ({ c, xy: anchorFor(c) })).filter(s => s.xy);
+    if (stops.length > 1) mapSvg.insert("path", ".pin").attr("class", "route").attr("d", mapPath({ type: "LineString", coordinates: stops.map(s => s.xy) }));
+    stops.forEach(s => {
+      const [x, y] = mapProj(s.xy);
+      mapSvg.append("circle").attr("class", "pin").attr("cx", x).attr("cy", y).attr("r", 4.5);
+    });
+    mapSvg.append("g").selectAll("text").data(mapFeatures.filter(f => visited.has(f.properties.name))).join("text")
+      .attr("class", "lbl").attr("text-anchor", "middle")
+      .attr("transform", d => { const [x, y] = mapProj(anchorFor(d.properties.name) || d3.geoCentroid(d)); return `translate(${x},${y - 12})`; })
+      .text(d => d.properties.name);
+  }
+
+  async function loadMap() {
     const atlas = $("#atlas"), mapEl = $("#map");
     if (!window.d3 || !window.topojson) { mapEl.hidden = true; atlas.classList.add("no-map"); return; }
     try {
       const world = await (await fetch(WORLD_URL)).json();
       const features = topojson.feature(world, world.objects.countries).features.filter(f => f.properties.name !== "Antarctica");
+      mapFeatures = features;
       const W = 960, H = 500;
       const proj = d3.geoNaturalEarth1().fitExtent([[8, 8], [W - 8, H - 8]], { type: "FeatureCollection", features });
       const path = d3.geoPath(proj);
+      mapProj = proj; mapPath = path;
       const svg = d3.select(mapEl).append("svg").attr("viewBox", `0 0 ${W} ${H}`)
         .attr("role", "group").attr("aria-label", "World map. Countries we've read from are highlighted.");
+      mapSvg = svg;
 
       svg.append("path").attr("class", "grat").attr("d", path(d3.geoGraticule10()));
       svg.append("path").attr("class", "sea").attr("d", path({ type: "Sphere" }));
 
-      const visited = new Set(COUNTRIES);
-      const nBooks = n => booksIn(n).length + (booksIn(n).length === 1 ? " book" : " books");
       svg.append("g").selectAll("path").data(features).join("path")
-        .attr("class", d => "land" + (visited.has(d.properties.name) ? " visited" : ""))
+        .attr("class", "land")
         .attr("d", path)
-        .each(function (d) {
-          if (!visited.has(d.properties.name)) return;
-          const n = d.properties.name;
-          d3.select(this).attr("tabindex", 0).attr("role", "button")
-            .attr("aria-label", `${n}, ${nBooks(n)}. Show books`)
-            .on("click", () => select(n))
-            .on("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(n); } });
-        });
+        .attr("role", "button")
+        .on("click", (e, d) => { if (COUNTRIES.includes(d.properties.name)) select(d.properties.name); })
+        .on("keydown", (e, d) => { if (COUNTRIES.includes(d.properties.name) && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); select(d.properties.name); } });
 
-      /* The voyage: a dotted route through the countries, in reading order. */
-      const anchorFor = c => {
-        const b = booksIn(c).find(x => x.anchor);
-        if (b) return b.anchor;
-        const f = features.find(x => x.properties.name === c);
-        return f ? d3.geoCentroid(f) : null;
-      };
-      const stops = COUNTRIES.map(c => ({ c, xy: anchorFor(c) })).filter(s => s.xy);
-      if (stops.length > 1) svg.append("path").attr("class", "route").attr("d", path({ type: "LineString", coordinates: stops.map(s => s.xy) }));
-      stops.forEach(s => {
-        const [x, y] = proj(s.xy);
-        svg.append("circle").attr("class", "pin").attr("cx", x).attr("cy", y).attr("r", 4.5);
-      });
-
-      /* Labels */
-      svg.append("g").selectAll("text").data(features.filter(f => visited.has(f.properties.name))).join("text")
-        .attr("class", "lbl").attr("text-anchor", "middle")
-        .attr("transform", d => { const [x, y] = proj(anchorFor(d.properties.name) || d3.geoCentroid(d)); return `translate(${x},${y - 12})`; })
-        .text(d => d.properties.name);
-
+      updateMapYear();
       select(selected);
     } catch (err) {
       mapEl.hidden = true; atlas.classList.add("no-map");
@@ -457,7 +721,9 @@
     toggle.setAttribute("aria-pressed", paused);
   });
 
-  buildTrack(); renderTabs(); renderPanel(); drawMap();
+  buildTrack(); renderYearTabs(); renderTabs(); renderPanel(); loadMap();
+  renderNowReading(); renderStats();
+  setInterval(renderNowReading, 3600000);
   let rz; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(buildTrack, 250); });
 </script>
 </body>
