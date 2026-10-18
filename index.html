@@ -406,7 +406,7 @@
       blurb: "Werner Herzog's own hallucinatory memoir of a childhood in ruins and a life spent chasing the impossible shot.",
       colors: ["#2a2a2a", "#c9c9c9"]
     },
-    {
+        {
       title: "Father Goriot",
       author: "Honoré de Balzac",
       country: "France",
@@ -414,17 +414,19 @@
       anchor: [2.35, 48.85],
       blurb: "A doting father sacrifices everything for his ungrateful daughters in Balzac's portrait of Restoration Paris.",
       colors: ["#4a2c1a", "#e0c9a0"]
-    }
+    },
     {
-  title: "Invisible Cities",
-  author: "Italo Calvino",
-  country: "Italy",
-  isbn: "9780156453806",
-  date: "2026-10",
-  blurb: "Marco Polo describes fantastical cities to Kublai Khan, each one a quiet meditation on memory, desire, and what a place really is."
-}
-
+      title: "Invisible Cities",
+      author: "Italo Calvino",
+      country: "Italy",
+      isbn: "9780156453806",
+      anchor: [12.50, 41.90],
+      date: "2026-10-15",
+      blurb: "Marco Polo describes fantastical cities to Kublai Khan, each one a quiet meditation on memory, desire, and what a place really is.",
+      colors: ["#2a3a4a", "#e8d9b0"]
+    }
   ];
+
   /* Sorted so the map route and carousel follow actual reading order; undated books go last. */
   const BOOKS = [...BOOKS_RAW].sort((a, b) => {
     if (!a.date && !b.date) return 0;
