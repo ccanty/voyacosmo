@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Voyacosmo">
+<meta name="theme-color" content="#0a0f1f">
+<link rel="apple-touch-icon" href="logo.png">
+<title>Voyacosmo · Manage books</title>
+<style>
+:root{--bg:#0a0f1f;--panel:#121a30;--line:#26314f;--ink:#f3e9d2;--dim:#9aa3bd;--gold:#d4af6a;--red:#e07a6a;color-scheme:dark;font:16px/1.4 -apple-system,system-ui,sans-serif}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;color:var(--ink);background:radial-gradient(120% 55% at 50% -10%,#1b2650,var(--bg) 62%) fixed,var(--bg);padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.serif,h1,h2,b.serif{font-family:"Iowan Old Style",Georgia,"Times New Roman",serif}
+.wrap{max-width:560px;margin:0 auto;padding:12px 16px 110px}
+header{display:flex;align-items:center;gap:12px;padding:6px 0 16px}
+header img{width:52px;height:52px;border-radius:50%;border:1px solid var(--gold);object-fit:cover}
+header small{color:var(--gold);letter-spacing:.16em;text-transform:uppercase;font-size:11px}
+h1{font-size:24px;margin:0;font-weight:600}
+h2{font-size:19px;margin:0;font-weight:600}
+.dim{color:var(--dim);font-size:14px}
+.center{text-align:center;margin-top:18px}
+a{color:var(--gold)}
+input,select,textarea,button{width:100%;font:inherit;color:inherit;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel)}
+input[type=color]{padding:3px;height:44px}
+textarea{resize:vertical}
+label{display:block;margin:14px 0 5px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+button{cursor:pointer;font-weight:600;margin-top:14px}
+button.gold{background:var(--gold);color:#1a1405;border:0}
+button.ghost{width:auto;margin:0;background:transparent;color:var(--gold);border-color:var(--line);padding:9px 14px}
+button.danger{background:transparent;color:var(--red);border-color:#5a2a2a}
+button:disabled{opacity:.5}
+.row{display:flex;gap:8px}.row>*{flex:1}.row>button{flex:none}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+#q{margin-bottom:12px}
+.card{display:flex;gap:12px;align-items:center;padding:10px;background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;cursor:pointer}
+.th{width:44px;height:64px;flex:none;border-radius:4px;overflow:hidden}
+.th img{width:100%;height:100%;object-fit:cover;display:block}
+.meta{flex:1;min-width:0;display:flex;flex-direction:column}
+.meta b{font-size:16px;font-weight:600}
+.meta span{font-size:13px;color:var(--dim)}
+.pill{font-style:normal;font-size:11px;color:var(--gold);border:1px solid var(--gold);border-radius:99px;padding:2px 8px;white-space:nowrap}
+#fab{position:fixed;left:16px;right:16px;max-width:528px;margin:0 auto;bottom:calc(16px + env(safe-area-inset-bottom));box-shadow:0 6px 24px #000a}
+#sheet{position:fixed;inset:0;overflow:auto;background:var(--bg);z-index:5;padding-top:env(safe-area-inset-top)}
+.bar{display:flex;align-items:center;justify-content:space-between;padding:6px 0 4px}
+#cover{height:110px;margin-top:10px;border-radius:4px}
+details{margin-top:16px;border:1px solid var(--line);border-radius:10px;padding:2px 12px 12px}
+summary{padding:10px 0;color:var(--gold);cursor:pointer}
+#toast{position:fixed;left:16px;right:16px;max-width:528px;margin:0 auto;bottom:calc(84px + env(safe-area-inset-bottom));background:#1d2a4d;border:1px solid var(--gold);border-radius:12px;padding:12px 14px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
+#toast.on{opacity:1}#toast.bad{border-color:var(--red)}
+</style></head><body>
+<div class="wrap" id="main">
+  <header><img src="logo.png" alt="" onerror="this.remove()"><div><small>Book Club</small><h1>Voyacosmo</h1></div></header>
+
+  <section id="tokview" hidden>
+    <div class="panel">
+      <h2>Connect GitHub</h2>
+      <p class="dim">Paste a token with Contents read/write access to ccanty/voyacosmo. It stays on this phone only.</p>
+      <input id="tok" type="password" autocomplete="off" placeholder="github_pat_…">
+      <button class="gold" onclick="saveTok()">Save token</button>
+    </div>
+  </section>
+
+  <section id="app" hidden>
+    <input id="q" placeholder="Search title, author or country" oninput="render()">
+    <p class="dim" id="count"></p>
+    <div id="list"></div>
+    <p class="dim center"><a href="#" onclick="signOut();return false">Change token</a> · <a href="/">View site</a></p>
+  </section>
+</div>
+
+<button id="fab" class="gold" onclick="openNew()" hidden>+ Add a book</button>
+
+<div id="sheet" hidden><div class="wrap">
+  <div class="bar"><button class="ghost" onclick="closeSheet()">Cancel</button><h2 id="stitle">Add a book</h2><span style="width:72px"></span></div>
+  <div id="find"><label>Find a book</label>
+    <div class="row"><input id="sq" placeholder="Title and/or author" enterkeyhint="search" onkeydown="if(event.key=='Enter')search()"><button class="ghost" onclick="search()">Search</button></div>
+    <div id="sr" style="margin-top:10px"></div></div>
+  <label>ISBN</label>
+  <div class="row"><input id="isbn" inputmode="numeric" placeholder="978…" oninput="isbnchg()"><button class="ghost" onclick="lookup()">Look up</button></div>
+  <img id="cover" alt="" hidden onerror="this.hidden=true">
+  <button id="nexti" class="ghost" hidden onclick="nextIsbn()" style="margin-top:8px;display:block">Try another ISBN</button>
+  <label>Title</label><input id="title">
+  <label>Author (full name)</label><input id="author">
+  <label>Country</label><select id="country" onchange="cchg()"></select>
+  <div id="newc" hidden><label>New country name</label><input id="ncname"></div>
+  <label>Month read (optional)</label><input id="date" type="month">
+  <label>Blurb</label><textarea id="blurb" rows="3" placeholder="One spoiler-free sentence"></textarea>
+  <details><summary>Map point &amp; cover colors</summary>
+    <label>Map point (longitude, latitude)</label><input id="pt" placeholder="12.50, 41.90">
+    <div class="row"><div><label>Color 1</label><input id="c1" type="color"></div><div><label>Color 2</label><input id="c2" type="color"></div></div>
+  </details>
+  <button id="save" class="gold" onclick="save()">Save to site</button>
+  <button id="del" class="danger" onclick="del()" hidden>Delete book</button>
+</div></div>
+<div id="toast"></div>
+
+<script>
+const REPO="ccanty/voyacosmo",API="https://api.github.com/repos/"+REPO+"/contents/index.html",TAG="const BOOKS_RAW = [";
+const $=id=>document.getElementById(id),q=JSON.stringify;
+let src="",sha="",books=[],known={},cur=null;
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const tok=()=>{try{return localStorage.getItem("gh")||""}catch(e){return ""}};
+const H=()=>({Authorization:"Bearer "+tok(),Accept:"application/vnd.github+json"});
+const dec=b=>new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\s/g,"")),c=>c.charCodeAt(0)));
+const enc=s=>{const u=new TextEncoder().encode(s);let b="";for(let i=0;i<u.length;i+=8192)b+=String.fromCharCode(...u.subarray(i,i+8192));return btoa(b)};
+function toast(t,bad){const e=$("toast");e.textContent=t;e.className="on"+(bad?" bad":"");clearTimeout(toast.t);toast.t=setTimeout(()=>e.className="",bad?7000:4000)}
+function hex(h,s,l){s/=100;l/=100;const k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>Math.round(255*(l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)))));return"#"+[f(0),f(8),f(4)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+
+/* ---- read BOOKS_RAW without touching anything else in the file ---- */
+function parse(){
+  const s=src.indexOf(TAG);if(s<0)throw Error("BOOKS_RAW not found in index.html.");
+  const a=s+TAG.length,re=/\n[ \t]*\];/g;re.lastIndex=a;const m=re.exec(src);
+  if(!m)throw Error("Closing ]; not found.");
+  const arr=src.slice(a,m.index),ch=[];let d=0,st=0,qt=null;
+  for(let i=0;i<arr.length;i++){
+    const c=arr[i];
+    if(qt){if(c=="\\")i++;else if(c==qt)qt=null;continue}
+    if(c=="/"&&arr[i+1]=="/"){i=arr.indexOf("\n",i);if(i<0)break;continue}
+    if(c=="/"&&arr[i+1]=="*"){i=arr.indexOf("*/",i)+1;continue}
+    if(c=='"'||c=="'"||c=="`"){qt=c;continue}
+    if(c=="{"){if(!d)st=i;d++}
+    else if(c=="}"&&--d==0)ch.push({s:st,e:i+1,o:new Function("return("+arr.slice(st,i+1)+")")()});
+  }
+  return{a,z:m.index,arr,ch};
+}
+async function load(){
+  const r=await fetch(API,{headers:H(),cache:"no-store"});
+  if(!r.ok)throw Error("GitHub error "+r.status+(r.status==401||r.status==404?": check your token":""));
+  const j=await r.json();sha=j.sha;src=dec(j.content);
+  books=parse().ch.map(c=>c.o);known={};
+  books.forEach(b=>{if(b.country&&b.anchor&&!known[b.country])known[b.country]=b.anchor.join(", ")});
+}
+function ser(o){
+  const ord=["title","author","country","isbn","anchor","date","blurb","colors"];
+  const keys=ord.filter(k=>o[k]!=null&&o[k]!=="").concat(Object.keys(o).filter(k=>!ord.includes(k)));
+  const f=(k,v)=>k=="anchor"?"["+v.join(", ")+"]":k=="colors"?"["+v.map(q).join(", ")+"]":q(v);
+  return"    {\n"+keys.map(k=>"      "+k+": "+f(k,o[k])).join(",\n")+"\n    }";
+}
+async function commit(fn,msg){
+  await load();const p=parse(),arr=fn(p);
+  const out=src.slice(0,p.a)+arr+src.slice(p.z);
+  const r=await fetch(API,{method:"PUT",headers:H(),body:JSON.stringify({message:msg,content:enc(out),sha})});
+  if(!r.ok)throw Error("Commit failed ("+r.status+")");
+  await load();render();
+}
+const mine=p=>{const c=p.ch.find(c=>q(c.o)===cur.orig);if(!c)throw Error("This book changed elsewhere. Reload the page.");return c};
+
+/* ---- list ---- */
+function render(){
+  const f=$("q").value.toLowerCase(),n=new Date(),ym=n.getFullYear()+"-"+String(n.getMonth()+1).padStart(2,"0");
+  const idx=books.map((b,i)=>i).filter(i=>(books[i].title+" "+books[i].author+" "+books[i].country).toLowerCase().includes(f));
+  idx.sort((x,y)=>(books[y].date||"").localeCompare(books[x].date||""));
+  $("count").textContent=books.length+" books";
+  $("list").innerHTML=idx.map(i=>{const b=books[i],c=b.colors||["#222","#555"],d=(b.date||"").slice(0,7);
+    return '<div class="card" onclick="openEdit('+i+')"><div class="th" style="background:linear-gradient('+esc(c[0])+','+esc(c[1])+')">'+
+    (b.isbn?'<img loading="lazy" alt="" src="https://covers.openlibrary.org/b/isbn/'+esc(b.isbn)+'-S.jpg?default=false" onerror="this.remove()">':"")+
+    '</div><div class="meta"><b class="serif">'+esc(b.title)+'</b><span>'+esc(b.author)+'</span><span>'+esc(b.country)+" · "+(d||"no date")+'</span></div>'+
+    (d==ym?'<i class="pill">This month</i>':"")+'</div>'}).join("")||'<p class="dim">No books found.</p>';
+}
+
+/* ---- sheet ---- */
+function fill(o){
+  $("country").innerHTML='<option value="">Choose country…</option>'+Object.keys(known).sort().map(c=>"<option>"+esc(c)+"</option>").join("")+'<option value="__new">+ New country…</option>';
+  $("isbn").value=o.isbn||"";$("title").value=o.title||"";$("author").value=o.author||"";
+  $("date").value=(o.date||"").slice(0,7);$("blurb").value=o.blurb||"";$("ncname").value="";
+  $("country").value=o.country||"";cchg();
+  $("pt").value=o.anchor?o.anchor.join(", "):"";
+  const h=Math.random()*360|0,c=o.colors||[hex(h,45,18),hex(h,50,84)];
+  $("c1").value=c[0];$("c2").value=c[1];cand=[];$("nexti").hidden=true;isbnchg();
+}
+function showSheet(){$("sheet").hidden=false;$("fab").hidden=true;$("sheet").scrollTop=0}
+function openNew(){cur=null;$("stitle").textContent="Add a book";$("del").hidden=true;$("find").hidden=false;$("sq").value="";$("sr").innerHTML="";fill({});showSheet()}
+function openEdit(i){cur={o:books[i],orig:q(books[i])};$("stitle").textContent="Edit book";$("del").hidden=false;$("find").hidden=true;fill(books[i]);showSheet()}
+function closeSheet(){$("sheet").hidden=true;$("fab").hidden=false;cur=null}
+function cchg(){const v=$("country").value;$("newc").hidden=v!="__new";$("pt").value=known[v]||""}
+function isbnchg(){const i=$("isbn").value.replace(/\D/g,""),c=$("cover");if(i.length>=10){c.src="https://covers.openlibrary.org/b/isbn/"+i+"-M.jpg?default=false";c.hidden=false}else c.hidden=true}
+async function lookup(){
+  const i=$("isbn").value.replace(/\D/g,"");if(!i)return toast("Enter an ISBN first.",1);
+  try{
+    const d=(await(await fetch("https://openlibrary.org/api/books?bibkeys=ISBN:"+i+"&format=json&jscmd=data")).json())["ISBN:"+i];
+    if(!d)return toast("No match on Open Library.",1);
+    if(!$("title").value)$("title").value=d.title||"";
+    if(!$("author").value&&d.authors)$("author").value=d.authors.map(a=>a.name).join(", ");
+    toast("Filled what was found. Please check it.");
+  }catch(e){toast("Lookup failed.",1)}
+}
+let cand=[],ci=0,hits=[];
+async function search(){
+  const t=$("sq").value.trim();if(!t)return;
+  $("sr").innerHTML='<p class="dim">Searching…</p>';
+  try{
+    const r=await fetch("https://openlibrary.org/search.json?limit=8&fields=title,author_name,first_publish_year,cover_i,isbn&q="+encodeURIComponent(t));
+    hits=(await r.json()).docs||[];
+    $("sr").innerHTML=hits.length?hits.map((x,i)=>'<div class="card" onclick="pick('+i+')"><div class="th">'+(x.cover_i?'<img alt="" src="https://covers.openlibrary.org/b/id/'+x.cover_i+'-S.jpg?default=false" onerror="this.remove()">':"")+'</div><div class="meta"><b class="serif">'+esc(x.title)+'</b><span>'+esc((x.author_name||[]).slice(0,2).join(", "))+(x.first_publish_year?" · "+x.first_publish_year:"")+'</span></div></div>').join(""):'<p class="dim">No results. Try fewer words.</p>';
+  }catch(e){$("sr").innerHTML='<p class="dim">Search failed. Try again.</p>'}
+}
+function pick(i){
+  const x=hits[i];
+  $("title").value=x.title||"";$("author").value=(x.author_name||[])[0]||"";
+  cand=(x.isbn||[]).filter(s=>/^97[89]\d{10}$/.test(s)).sort((a,b)=>(/^97[89][01]/.test(b)?1:0)-(/^97[89][01]/.test(a)?1:0));
+  ci=0;$("isbn").value=cand[0]||"";isbnchg();$("nexti").hidden=cand.length<2;$("sr").innerHTML="";
+  toast("Filled in. Check the cover; if it’s blank or looks wrong, tap Try another ISBN. Then choose the country.");
+}
+function nextIsbn(){if(!cand.length)return;ci=(ci+1)%cand.length;$("isbn").value=cand[ci];isbnchg()}
+function readForm(){
+  const t=$("title").value.trim(),a=$("author").value.trim();if(!t||!a)throw Error("Title and author are required.");
+  let c=$("country").value;if(!c)throw Error("Choose a country.");
+  if(c=="__new"){c=$("ncname").value.trim();if(!c)throw Error("Enter the new country name.")}
+  const pt=$("pt").value.split(",").map(x=>parseFloat(x));
+  if(pt.length!=2||pt.some(isNaN))throw Error("Map point must be “longitude, latitude”.");
+  const ym=$("date").value,od=(cur&&cur.o.date)||"";
+  return Object.assign({},cur?cur.o:{},{title:t,author:a,country:c,isbn:$("isbn").value.replace(/\D/g,""),anchor:pt.map(x=>+x.toFixed(2)),date:ym?(od.startsWith(ym)?od:ym+"-15"):"",blurb:$("blurb").value.trim(),colors:[$("c1").value,$("c2").value]});
+}
+async function save(){
+  const b=$("save");b.disabled=true;
+  try{
+    const o=readForm(),e=ser(o),ym=(o.date||"").slice(0,7);
+    const clash=ym&&books.some(x=>(!cur||x!==cur.o)&&(x.date||"").slice(0,7)==ym);
+    if(cur)await commit(p=>{const c=mine(p);return p.arr.slice(0,c.s)+e.trimStart()+p.arr.slice(c.e)},"Edit book: "+o.title);
+    else await commit(p=>{
+      const L=p.ch[p.ch.length-1];if(!L)return"\n"+e+"\n  ";
+      const t=p.arr.slice(L.e),m=t.match(/^\s*,/);
+      return m?p.arr.slice(0,L.e+m[0].length)+"\n"+e+","+t.slice(m[0].length):p.arr.slice(0,L.e)+",\n"+e+t;
+    },"Add book: "+o.title);
+    closeSheet();
+    toast("Saved. Live in 1–2 min, then hard-refresh the site."+(clash?" Another book shares that month, so only one shows as this month’s pick.":""));
+  }catch(err){toast(err.message,1)}
+  b.disabled=false;
+}
+async function del(){
+  if(!cur||!confirm("Delete “"+cur.o.title+"” from the site?"))return;
+  try{
+    const t=cur.o.title;
+    await commit(p=>{const c=mine(p);let a=c.s;while(/[ \t]/.test(p.arr[a-1]))a--;return p.arr.slice(0,a)+p.arr.slice(c.e).replace(/^,?[ \t]*\n?/,"")},"Delete book: "+t);
+    closeSheet();toast("Deleted. Live in 1–2 min.");
+  }catch(err){toast(err.message,1)}
+}
+
+/* ---- token + start ---- */
+function saveTok(){try{localStorage.setItem("gh",$("tok").value.trim())}catch(e){}init()}
+function signOut(){try{localStorage.removeItem("gh")}catch(e){}init()}
+async function init(){
+  const has=!!tok();
+  $("tokview").hidden=has;$("app").hidden=!has;$("fab").hidden=!has;$("sheet").hidden=true;
+  if(!has)return;
+  try{await load();render()}catch(e){toast(e.message,1)}
+}
+init();
+</script></body></html>
